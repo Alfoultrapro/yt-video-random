@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>trova video a caso su yt</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --primary: #ff5252;
+      --primary-dark: #c50e29;
+      --bg: #181818;
+      --card-bg: #232323;
+      --text: #f5f5f5;
+      --input-bg: #303030;
+      --input-border: #444;
+      --shadow: 0 4px 32px 0 rgba(0,0,0,.3);
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', Arial, sans-serif;
+    }
+    .container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 16px 24px 16px;
+      background: var(--bg);
+    }
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      letter-spacing: -2px;
+      color: var(--primary);
+      text-shadow: 0 2px 12px rgba(255,82,82,0.15);
+    }
+    .search-card {
+      background: var(--card-bg);
+      box-shadow: var(--shadow);
+      border-radius: 18px;
+      padding: 28px 24px 24px 24px;
+      max-width: 410px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      margin-bottom: 32px;
+      gap: 16px;
+    }
+    .input-row {
+      display: flex;
+      gap: 8px;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1.5px solid var(--input-border);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 1.1em;
+      outline: none;
+      transition: border 0.2s;
+    }
+    input[type="text"]:focus {
+      border-color: var(--primary);
+    }
+    button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 0 22px;
+      font-size: 1.1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 1px 6px rgba(255,82,82,0.11);
+      height: 44px;
+    }
+    button:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1.5px) scale(1.025);
+    }
+    #info {
+      min-height: 36px;
+      color: #ffd1d1;
+      font-size: 1em;
+      text-align: left;
+      margin-top: 8px;
+      word-break: break-word;
+    }
+    .video-card {
+      background: var(--card-bg);
+      box-shadow: var(--shadow);
+      border-radius: 18px;
+      padding: 20px 14px;
+      max-width: 560px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      animation: fadeIn 0.6s;
+    }
+    .video-title {
+      font-size: 1.2em;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 6px;
+      text-align: center;
+    }
+    .video-desc {
+      font-size: 1em;
+      color: #cccccc;
+      margin-bottom: 10px;
+      text-align: center;
+      max-width: 95%;
+      word-break: break-word;
+    }
+    iframe {
+      border-radius: 12px;
+      border: none;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+      max-width: 100%;
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #000;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(.98);}
+      to { opacity: 1; transform: scale(1);}
+    }
+    @media (max-width: 600px) {
+      h1 { font-size: 1.5rem; }
+      .search-card, .video-card { padding: 14px 4vw 12px 4vw; }
+      .video-title { font-size: 1em; }
+      .video-desc { font-size: .95em; }
+      button { font-size: 1em; padding: 0 12px; }
+      input[type="text"] { font-size: 1em; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>video casuale</h1>
+    <div class="search-card">
+      <div class="input-row">
+        <input id="search" type="text" placeholder="Inserisci una parola o frase" 
+               onkeydown="if(event.key==='Enter'){findVideo();}">
+        <button id="searchBtn" onclick="findVideo()">🎲 Cerca</button>
+      </div>
+      <div id="info"></div>
+    </div>
+    <div id="video"></div>
+  </div>
+  <script>
+    async function findVideo() {
+      const query = document.getElementById('search').value.trim();
+      const info = document.getElementById('info');
+      const video = document.getElementById('video');
+      info.textContent = '';
+      video.innerHTML = '';
+      if (!query) {
+        info.textContent = 'Scrivi una parola o frase!';
+        return;
+      }
+      info.textContent = '🎬 Cerco un video...';
+      try {
+        const res = await fetch('/.netlify/functions/random-video?q=' + encodeURIComponent(query));
+        if (!res.ok) {
+          const error = await res.json();
+          info.textContent = error.error || 'Errore!';
+          return;
+        }
+        const data = await res.json();
+        info.textContent = '';
+        video.innerHTML = `
+          <div class="video-card">
+            <div class="video-title">${data.title}</div>
+            <div class="video-desc">${data.description ?? ''}</div>
+            <iframe src="https://www.youtube.com/embed/${data.videoId}" 
+              allowfullscreen></iframe>
+          </div>
+        `;
+      } catch (e) {
+        info.textContent = 'Errore nella connessione al server!';
+      }
+    }
+  </script>
+</body>
+</html>

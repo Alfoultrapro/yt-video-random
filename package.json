@@ -1,0 +1,8 @@
+{
+  "name": "youtube-random-video-netlify",
+  "version": "1.0.0",
+  "main": "netlify/functions/random-video.js",
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  }
+}
